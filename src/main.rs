@@ -65,6 +65,10 @@ fn list_expenses(expenses: &[Expense]) {
     }
 }
 
+fn calculate_total(expenses: &[Expense]) -> f64 {
+    expenses.iter().map(|e| e.amount).sum()
+}
+
 fn main() {
     let mut expenses: Vec<Expense> = Vec::new();
 
@@ -91,8 +95,7 @@ fn main() {
                 list_expenses(&expenses);
             }
             "3" => {
-                // TODO: Issue #1 - Write a function to iterate through the vector and print the total sum of all expenses.
-                println!("\n[Issue #1 Not Implemented]: Calculate and display the total sum of all expenses.");
+                println!("\nTotal Expenses: ${:.2}", calculate_total(&expenses));
             }
             "4" => {
                 // TODO: Issue #2 - Implement a filter to show only expenses over a certain amount.
