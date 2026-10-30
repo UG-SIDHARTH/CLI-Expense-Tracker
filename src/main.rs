@@ -65,6 +65,14 @@ fn list_expenses(expenses: &[Expense]) {
     }
 }
 
+fn filter_expenses_by_amount(expenses: &[Expense], threshold: f64) -> Vec<Expense> {
+    expenses
+        .iter()
+        .filter(|e| e.amount > threshold)
+        .cloned()
+        .collect()
+}
+
 fn calculate_total(expenses: &[Expense]) -> f64 {
     expenses.iter().map(|e| e.amount).sum()
 }
@@ -98,8 +106,9 @@ fn main() {
                 println!("\nTotal Expenses: ${:.2}", calculate_total(&expenses));
             }
             "4" => {
-                // TODO: Issue #2 - Implement a filter to show only expenses over a certain amount.
-                println!("\n[Issue #2 Not Implemented]: Filter and display expenses exceeding a specific amount threshold.");
+                let threshold = prompt("\nEnter the amount threshold: ").parse().unwrap_or(0.0);
+                let filtered_expenses = filter_expenses_by_amount(&expenses, threshold);
+                list_expenses(&filtered_expenses);
             }
             "5" => {
                 // TODO: Issue #3 - Add basic file I/O to save the expense list to a .csv file before the program exits.
