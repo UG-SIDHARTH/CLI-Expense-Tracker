@@ -1,6 +1,9 @@
+import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -12,6 +15,25 @@ public class Main {
         Expense(String desc, double val) {
             description = desc;
             amount = val;
+        }
+    }
+
+    private static String escapeCsv(String value) {
+        if (value == null) {
+            return "";
+        }
+        if (value.contains(",") || value.contains("\"") || value.contains("\n")) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
+    }
+
+    private static void exportToCsv(List<Expense> expenses, String filename) throws IOException {
+        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(filename)))) {
+            writer.println("description,amount");
+            for (Expense exp : expenses) {
+                writer.printf("%s,%.2f%n", escapeCsv(exp.description), exp.amount);
+            }
         }
     }
 
@@ -100,21 +122,12 @@ public class Main {
 
             } else if (userChoice.equals("5")) {
                 try {
-                    FileWriter csvWriter = new FileWriter("expenses.csv");
-                    csvWriter.write("description,amount\n");
-
-                    for (int i = 0; i < myExpensesList.size(); i++) {
-                        Expense currentExp = myExpensesList.get(i);
-                        csvWriter.write(currentExp.description + "," + currentExp.amount + "\n");
-                    }
-
-                    csvWriter.close();
-                    System.out.println("Saved stuff to expenses.csv successfully!");
+                    exportToCsv(myExpensesList, "expenses.csv");
+                    System.out.println("Saved " + myExpensesList.size() + " expense(s) to expenses.csv successfully!");
                     System.out.println("Exiting program. Bye!");
                     keepRunning = false;
-
                 } catch (IOException ex) {
-                    System.out.println("Error saving file! Permissions issue?");
+                    System.out.println("Error saving file: " + ex.getMessage());
                 }
 
             } else if (userChoice.equals("6")) {
@@ -129,4 +142,3 @@ public class Main {
         scan.close();
     }
 }
-
