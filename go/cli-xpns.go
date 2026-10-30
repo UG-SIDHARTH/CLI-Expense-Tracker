@@ -42,6 +42,20 @@ func calculateTotal(expenses *[]expense) {
 	}
 	fmt.Printf("\nTotal Expenses: $%.2f\n", total)
 }
+func filterExpensesByAmount(expenses *[]expense, threshold float64) {
+	fmt.Printf("\n--- Expenses Over $%.2f ---\n", threshold)
+	var found bool = false
+	for i, e := range *expenses {
+		if e.Amount > threshold {
+			fmt.Printf("Expense %d: %s - $%.2f\n", i+1, e.Description, e.Amount)
+			found = true
+
+		}
+	}
+	if !found {
+		fmt.Println("No expenses found over the specified amount.")
+	}
+}
 
 func main() {
 	var expenses []expense
@@ -67,8 +81,10 @@ func main() {
 		case "3":
 			calculateTotal(&expenses)
 		case "4":
-			// TODO: Implement filtering by amount
-			fmt.Println("to be implemented, trust me bro")
+			thresholdStr := prompt("Enter the amount threshold: ")
+			var threshold float64
+			fmt.Sscanf(thresholdStr, "%f", &threshold)
+			filterExpensesByAmount(&expenses, threshold)
 		case "5":
 			// TODO: Implement saving to CSV
 			fmt.Println("to be implemented, trust me bro")
