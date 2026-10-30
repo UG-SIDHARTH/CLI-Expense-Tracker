@@ -44,7 +44,7 @@ public class Main {
         boolean keepRunning = true;
 
         System.out.println("==================================");
-        System.out.println("     CLI Expense Tracker v1.2");
+        System.out.println("     CLI Expense Tracker v1.3");
         System.out.println("==================================");
 
         while (keepRunning) {
@@ -53,21 +53,31 @@ public class Main {
             System.out.println("2. List Expenses");
             System.out.println("3. View Total Sum");
             System.out.println("4. Filter Expenses by Amount");
-            System.out.println("5. Exit & Save to CSV");
-            System.out.println("6. Exit");
-            System.out.print("\nEnter choice (1-6): ");
+            System.out.println("5. Edit Expense");
+            System.out.println("6. Delete Expense");
+            System.out.println("7. Exit & Save to CSV");
+            System.out.println("8. Exit");
+            System.out.print("\nEnter choice (1-8): ");
 
-            String userChoice = scan.nextLine();
+            String userChoice = scan.nextLine().trim();
 
             if (userChoice.equals("1")) {
                 System.out.print("Enter expense description: ");
-                String desc = scan.nextLine();
+                String desc = scan.nextLine().trim();
+                if (desc.isEmpty()) {
+                    System.out.println("Description cannot be empty. Aborting.");
+                    continue;
+                }
 
                 System.out.print("Enter amount ($): ");
-                String amtStr = scan.nextLine();
+                String amtStr = scan.nextLine().trim();
 
                 try {
                     double amt = Double.parseDouble(amtStr);
+                    if (amt < 0) {
+                        System.out.println("Amount cannot be negative. Try again.");
+                        continue;
+                    }
                     myExpensesList.add(new Expense(desc, amt));
                     System.out.println("Expense added successfully!");
                 } catch (NumberFormatException ex) {
@@ -82,33 +92,34 @@ public class Main {
                 } else {
                     for (int i = 0; i < myExpensesList.size(); i++) {
                         Expense temp = myExpensesList.get(i);
-                        System.out.println((i + 1) + ". " + temp.description + " - $" + temp.amount);
+                        System.out.printf("%d. %s - $%.2f%n", (i + 1), temp.description, temp.amount);
                     }
                 }
 
             } else if (userChoice.equals("3")) {
                 double sumTotal = 0.0;
 
-                for(int i=0; i<myExpensesList.size(); i++) {
+                for (int i = 0; i < myExpensesList.size(); i++) {
                     sumTotal += myExpensesList.get(i).amount;
                 }
 
-                System.out.println("\nTotal Expenses: $" + sumTotal);
+                System.out.printf("\nTotal Expenses: $%.2f%n", sumTotal);
 
             } else if (userChoice.equals("4")) {
                 System.out.print("Show expenses greater than: $");
-                String thresholdStr = scan.nextLine();
+                String thresholdStr = scan.nextLine().trim();
 
                 try {
                     double limit = Double.parseDouble(thresholdStr);
-                    System.out.println("\nExpenses greater than $" + limit + ":");
+                    System.out.printf("\nExpenses greater than $%.2f:%n", limit);
 
                     boolean foundAnything = false;
+                    int count = 1;
 
                     for (int i = 0; i < myExpensesList.size(); i++) {
                         Expense e = myExpensesList.get(i);
                         if (e.amount > limit) {
-                            System.out.println((i + 1) + ". " + e.description + " - $" + e.amount);
+                            System.out.printf("%d. %s - $%.2f%n", count++, e.description, e.amount);
                             foundAnything = true;
                         }
                     }
@@ -121,6 +132,80 @@ public class Main {
                 }
 
             } else if (userChoice.equals("5")) {
+                System.out.println("\n--- Edit Expense ---");
+                if (myExpensesList.isEmpty()) {
+                    System.out.println("No expenses to edit.");
+                    continue;
+                }
+
+                for (int i = 0; i < myExpensesList.size(); i++) {
+                    Expense temp = myExpensesList.get(i);
+                    System.out.printf("%d. %s - $%.2f%n", (i + 1), temp.description, temp.amount);
+                }
+
+                System.out.print("Enter expense number to edit (1-" + myExpensesList.size() + "): ");
+                String editNumStr = scan.nextLine().trim();
+
+                try {
+                    int index = Integer.parseInt(editNumStr) - 1;
+                    if (index < 0 || index >= myExpensesList.size()) {
+                        System.out.println("Invalid expense number.");
+                        continue;
+                    }
+
+                    Expense target = myExpensesList.get(index);
+
+                    System.out.print("Enter new description (press Enter to keep '" + target.description + "'): ");
+                    String newDesc = scan.nextLine().trim();
+                    if (!newDesc.isEmpty()) {
+                        target.description = newDesc;
+                    }
+
+                    System.out.print("Enter new amount (press Enter to keep '$" + String.format("%.2f", target.amount) + "'): ");
+                    String newAmtStr = scan.nextLine().trim();
+                    if (!newAmtStr.isEmpty()) {
+                        double newAmt = Double.parseDouble(newAmtStr);
+                        if (newAmt < 0) {
+                            System.out.println("Amount cannot be negative. Update cancelled.");
+                            continue;
+                        }
+                        target.amount = newAmt;
+                    }
+
+                    System.out.println("Expense updated successfully!");
+                } catch (NumberFormatException ex) {
+                    System.out.println("Invalid number entered.");
+                }
+
+            } else if (userChoice.equals("6")) {
+                System.out.println("\n--- Delete Expense ---");
+                if (myExpensesList.isEmpty()) {
+                    System.out.println("No expenses to delete.");
+                    continue;
+                }
+
+                for (int i = 0; i < myExpensesList.size(); i++) {
+                    Expense temp = myExpensesList.get(i);
+                    System.out.printf("%d. %s - $%.2f%n", (i + 1), temp.description, temp.amount);
+                }
+
+                System.out.print("Enter expense number to delete (1-" + myExpensesList.size() + "): ");
+                String delNumStr = scan.nextLine().trim();
+
+                try {
+                    int index = Integer.parseInt(delNumStr) - 1;
+                    if (index < 0 || index >= myExpensesList.size()) {
+                        System.out.println("Invalid expense number.");
+                        continue;
+                    }
+
+                    Expense removed = myExpensesList.remove(index);
+                    System.out.println("Deleted expense: " + removed.description + " ($" + String.format("%.2f", removed.amount) + ")");
+                } catch (NumberFormatException ex) {
+                    System.out.println("Invalid number entered.");
+                }
+
+            } else if (userChoice.equals("7")) {
                 try {
                     exportToCsv(myExpensesList, "expenses.csv");
                     System.out.println("Saved " + myExpensesList.size() + " expense(s) to expenses.csv successfully!");
@@ -130,12 +215,12 @@ public class Main {
                     System.out.println("Error saving file: " + ex.getMessage());
                 }
 
-            } else if (userChoice.equals("6")) {
+            } else if (userChoice.equals("8")) {
                 System.out.println("Exiting program without saving. See ya!");
                 keepRunning = false;
 
             } else {
-                System.out.println("Wait, what? That's not a valid option. Try 1-6.");
+                System.out.println("Wait, what? That's not a valid option. Try 1-8.");
             }
         }
 
