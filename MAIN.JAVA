@@ -1,4 +1,7 @@
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -28,6 +31,76 @@ public class Main {
         return value;
     }
 
+    private static String[] parseCsvLine(String line) {
+        List<String> tokens = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        boolean inQuotes = false;
+
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (inQuotes) {
+                if (c == '"') {
+                    if (i + 1 < line.length() && line.charAt(i + 1) == '"') {
+                        sb.append('"');
+                        i++;
+                    } else {
+                        inQuotes = false;
+                    }
+                } else {
+                    sb.append(c);
+                }
+            } else {
+                if (c == '"') {
+                    inQuotes = true;
+                } else if (c == ',') {
+                    tokens.add(sb.toString());
+                    sb.setLength(0);
+                } else {
+                    sb.append(c);
+                }
+            }
+        }
+        tokens.add(sb.toString());
+        return tokens.toArray(new String[0]);
+    }
+
+    private static void loadExpensesFromCsv(List<Expense> list, String filename) {
+        File file = new File(filename);
+        if (!file.exists()) {
+            return;
+        }
+
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line = br.readLine(); // Header line
+            int loadedCount = 0;
+
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+
+                String[] parts = parseCsvLine(line);
+                if (parts.length >= 2) {
+                    String desc = parts[0].trim();
+                    try {
+                        double amt = Double.parseDouble(parts[1].trim());
+                        if (!desc.isEmpty() && amt >= 0.0) {
+                            list.add(new Expense(desc, amt));
+                            loadedCount++;
+                        }
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+            }
+
+            if (loadedCount > 0) {
+                System.out.println("Loaded " + loadedCount + " existing expense(s) from " + filename + ".");
+            }
+        } catch (IOException e) {
+            System.out.println("Notice: Could not read " + filename + ": " + e.getMessage());
+        }
+    }
+
     private static void exportToCsv(List<Expense> expenses, String filename) throws IOException {
         try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(filename)))) {
             writer.println("description,amount");
@@ -44,8 +117,11 @@ public class Main {
         boolean keepRunning = true;
 
         System.out.println("==================================");
-        System.out.println("     CLI Expense Tracker v1.3");
+        System.out.println("     CLI Expense Tracker v1.4");
         System.out.println("==================================");
+
+        // Load previously saved expenses automatically on startup
+        loadExpensesFromCsv(myExpensesList, "expenses.csv");
 
         while (keepRunning) {
             System.out.println("\nSelect an option:");
