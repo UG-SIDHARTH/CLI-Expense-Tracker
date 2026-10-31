@@ -77,6 +77,17 @@ fn calculate_total(expenses: &[Expense]) -> f64 {
     expenses.iter().map(|e| e.amount).sum()
 }
 
+fn save_expenses_to_csv(expenses: &[Expense], filename: &str) -> std::io::Result<()> {
+    let mut wtr = csv::Writer::from_path(filename)?;
+
+    for expense in expenses {
+        wtr.write_record(&[&expense.description, &expense.amount.to_string()])?;
+    }
+
+    wtr.flush()?;
+    Ok(())
+}
+
 fn main() {
     let mut expenses: Vec<Expense> = Vec::new();
 
@@ -112,7 +123,11 @@ fn main() {
             }
             "5" => {
                 // TODO: Issue #3 - Add basic file I/O to save the expense list to a .csv file before the program exits.
-                println!("\n[Issue #3 Not Implemented]: Save expenses to `expenses.csv` before exiting.");
+                if let Err(e) = save_expenses_to_csv(&expenses, "expenses.csv") {
+                    eprintln!("Error saving expenses to CSV: {}", e);
+                } else {
+                    println!("\nExpenses saved to `expenses.csv`.");
+                }
                 println!("Exiting program. Goodbye!");
                 break;
             }
