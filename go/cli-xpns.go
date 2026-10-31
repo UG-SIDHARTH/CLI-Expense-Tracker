@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"encoding/csv"
+	"fmt"
+	"os"
+)
 
 type expense struct {
 	Description string
@@ -57,6 +61,26 @@ func filterExpensesByAmount(expenses *[]expense, threshold float64) {
 	}
 }
 
+func saveExpensesToCSV(expenses *[]expense, filename string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	w := csv.NewWriter(file)
+	defer w.Flush()
+
+	for _, e := range *expenses {
+		record := []string{e.Description, fmt.Sprintf("%.2f", e.Amount)}
+		if err := w.Write(record); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func main() {
 	var expenses []expense
 	fmt.Println("===============================")
@@ -86,8 +110,9 @@ func main() {
 			fmt.Sscanf(thresholdStr, "%f", &threshold)
 			filterExpensesByAmount(&expenses, threshold)
 		case "5":
-			// TODO: Implement saving to CSV
-			fmt.Println("to be implemented, trust me bro")
+			if err := saveExpensesToCSV(&expenses, "expenses.csv"); err != nil {
+				fmt.Printf("Error saving expenses to CSV: %v\n", err)
+			}
 		case "6":
 			loop = false
 		default:
